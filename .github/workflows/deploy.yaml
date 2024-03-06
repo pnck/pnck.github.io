@@ -2,10 +2,8 @@ name: Deploy Pages
 
 # Controls when the workflow will run
 on:
-  push:
-    branches: ['main']
-  workflow_dispatch:
-  workflow_call:
+  repository_dispatch:
+    types: ['deploy'] # custom event type: 'deploy'
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -30,17 +28,16 @@ jobs:
     steps:
       # Download a build artifact that was previously uploaded in the workflow by the upload-artifact action
       - name: Download Artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          github_token: ${{ secrets.GH_TOKEN }}
-          repo: ${{ secrets.SRC_REPO }}
           name: public
-          allow_forks: false
-          workflow_search: true
-          workflow_conclusion: success
+          github-token: ${{ secrets.GH_TOKEN }}
+          repository: ${{ secrets.SRC_REPO }}
+          run-id: ${{ github.event.client_payload.run_id }}
             
       - name: Extract
         run: |
+          ls -lah .
           mkdir public
           tar -xf artifact.tar -C public
           ls -lh public/
